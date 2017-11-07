@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Popular Movies</string>
+
+    <!-- Label of MovieDetail Activity -->
+    <string name="movie_detail">MovieDetail</string>
+
+    <!-- Menu item in MainActivity -->
+    <string name="most_popular">most popular</string>
+
+    <!-- Menu item in MainActivity -->
+    <string name="highest_rated">highest rated</string>
+
+    <!-- Error message when there is no internet connectivity [CHAR LIMIT=NONE] -->
+    <string name="no_internet_connection">No internet connection.</string>
+
+    <!-- Text to display in the list when there are no movies [CHAR LIMIT=NONE] -->
+    <string name="no_movies">No movies found.</string>
+
+    <!-- Image of the selected movie from the list. [CHAR LIMIT=NONE] -->
+    <string name="image_description">Image of the selected movie from the list.</string>
+
+    <!-- Image display in the GridView as a thumbnail. [CHAR LIMIT=NONE] -->
+    <string name="grid_item_image">Image display in the GridView as a thumbnail.</string>
+
+</resources>
