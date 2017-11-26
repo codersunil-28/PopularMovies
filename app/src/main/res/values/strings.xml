@@ -22,4 +22,7 @@
     <!-- Image display in the GridView as a thumbnail. [CHAR LIMIT=NONE] -->
     <string name="grid_item_image">Image display in the GridView as a thumbnail.</string>
 
+    <!-- Text to display in the list when there are no movies [CHAR LIMIT=NONE] -->
+    <string name="no_trailers_and_reviews">No trailers and reviews found.</string>
+
 </resources>

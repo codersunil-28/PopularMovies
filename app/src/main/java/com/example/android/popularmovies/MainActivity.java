@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private static final int MOVIE_LOADER_ID = 1;
     private static final String MOVIE_BASE_URL = "https://api.themoviedb.org/3/movie/";
     private static final String API_KEY = "";
+    private static final String API_KEY_STRING = "api_key";
 
 
     @Override
@@ -54,6 +55,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 String synopsis = currentMovie.getPlotSynopsis();
                 double rating = currentMovie.getUserRating();
                 String date = currentMovie.getReleaseDate();
+                int movieId = currentMovie.getMovieId();
 
                 Intent intent = new Intent(MainActivity.this, MovieDetail.class);
                 intent.putExtra("title", title);
@@ -61,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 intent.putExtra("synopsis", synopsis);
                 intent.putExtra("rating", rating);
                 intent.putExtra("date", date);
+                intent.putExtra("movieId", movieId);
                 startActivity(intent);
             }
         });
@@ -106,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         Uri baseUri = Uri.parse(MOVIE_BASE_URL + apiParam);
         Uri.Builder uriBuilder = baseUri.buildUpon();
-        uriBuilder.appendQueryParameter("api_key", API_KEY);
+        uriBuilder.appendQueryParameter(API_KEY_STRING, API_KEY);
         uriBuilder.appendQueryParameter("language", "en-US");
         uriBuilder.appendQueryParameter("page", "1");
 

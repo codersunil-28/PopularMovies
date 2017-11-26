@@ -1,5 +1,8 @@
 package com.example.android.popularmovies;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by sunilkumar on 29/10/17.
  */
@@ -13,6 +16,8 @@ public class Movies {
     private String releaseDate;
     private int movieId;
     private static final String BASE_PATH_OF_POSTER = "http://image.tmdb.org/t/p/w185";
+    List<String> mReview = new ArrayList<>();
+    List<String> mYoutubeId = new ArrayList<>();
 
     public Movies(String title, String path, String synopsis, double rating, String date, int id) {
         originalTitle = title;
@@ -22,6 +27,14 @@ public class Movies {
         releaseDate = date;
         movieId = id;
     }
+
+    public Movies(List<String> review, List<String> youtubeId){
+        mReview = review;
+        mYoutubeId = youtubeId;
+    }
+
+
+
 
     public String getOriginalTitle() {
         return originalTitle;
@@ -46,6 +59,14 @@ public class Movies {
 
     public int getMovieId() {
         return movieId;
+    }
+
+    public List<String> getMovieReview() {
+        return mReview;
+    }
+
+    public List<String> getMovieTrailers() {
+        return mYoutubeId;
     }
 
 }

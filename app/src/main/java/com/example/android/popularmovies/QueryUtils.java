@@ -49,6 +49,23 @@ public final class QueryUtils {
     }
 
 
+    public static Movies fetchReviewsAndTrailers(String requestUrl) {
+        URL url = createUrl(requestUrl);
+
+        // Perform HTTP request to the URL and receive a JSON response back
+        String jsonResponse = null;
+        try {
+            jsonResponse = makeHttpRequest(url);
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "Error closing input stream", e);
+        }
+
+        Movies movieReviewsAndTrailers = extractReviewsAndTrailersFromJson(jsonResponse);
+
+        return movieReviewsAndTrailers;
+    }
+
+
     /**
      * Returns new URL object from the given string URL.
      */
@@ -176,5 +193,56 @@ public final class QueryUtils {
         }
         return moviesDataList;
     }
+
+
+    private static Movies extractReviewsAndTrailersFromJson(String movieJSON) {
+
+        List<String> reviews = new ArrayList<>();
+        List<String> youtubeIds = new ArrayList<>();
+
+        // If the JSON string is empty or null, then return early.
+        if (TextUtils.isEmpty(movieJSON)) {
+            return null;
+        }
+
+        try {
+
+            // Create a JSONObject
+            JSONObject baseJsonResponse = new JSONObject(movieJSON);
+
+            JSONObject movieReviews = baseJsonResponse.getJSONObject("reviews");
+
+            JSONArray reviewsResultsArray = movieReviews.getJSONArray("results");
+
+            for (int i = 0; i < reviewsResultsArray.length(); i++) {
+
+                JSONObject currentReviewResult = reviewsResultsArray.getJSONObject(i);
+
+                String review = currentReviewResult.getString("content");
+
+                reviews.add(review);
+            }
+
+            JSONObject movieVideos = baseJsonResponse.getJSONObject("videos");
+            JSONArray videosResultsArray = movieVideos.getJSONArray("results");
+            for (int i = 0; i < videosResultsArray.length(); i++) {
+
+                JSONObject currentVideoResult = videosResultsArray.getJSONObject(i);
+
+                String youtubeId = currentVideoResult.getString("key");
+
+                youtubeIds.add(youtubeId);
+            }
+
+            Movies reviewsAndTrailers = new Movies(reviews, youtubeIds);
+            return reviewsAndTrailers;
+
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "Problem parsing the movie JSON results", e);
+            return null;
+        }
+
+    }
+
 
 }
