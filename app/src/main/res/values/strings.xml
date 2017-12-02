@@ -25,4 +25,10 @@
     <!-- Text to display in the list when there are no movies [CHAR LIMIT=NONE] -->
     <string name="no_trailers_and_reviews">No trailers and reviews found.</string>
 
+    <!-- Text to display in the layout (tools:text) [CHAR LIMIT=NONE] -->
+    <string name="trailers">Trailers:</string>
+
+    <!-- Text to display as a label in the layout (Trailers:) [CHAR LIMIT=NONE] -->
+    <string name="trailers_label">Trailers:</string>
+
 </resources>

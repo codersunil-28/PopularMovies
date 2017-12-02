@@ -5,24 +5,26 @@ import android.content.AsyncTaskLoader;
 import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
+import android.databinding.DataBindingUtil;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.LinearSnapHelper;
+import android.support.v7.widget.SnapHelper;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.android.popularmovies.databinding.ActivityMovieDetailBinding;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
 public class MovieDetail extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Movies> {
 
-    private static final String API_KEY = "";
+    private static final String API_KEY = "8269544114add3a8508b7721bf799f09";
     private static final String API_KEY_STRING = "api_key";
     private final String LOG_TAG = MovieDetail.class.getName();
     private static final int MOVIE_LOADER_ID = 1;
@@ -30,12 +32,13 @@ public class MovieDetail extends AppCompatActivity implements LoaderManager.Load
     private TextView mEmptyStateTextView;
     private static final String APPEND_STRING = "append_to_response";
     private static final String REVIEWS_AND_TRAILERS = "reviews,videos";
-    private String trailer;
+    private TrailerAdapter trailerAdapter;
+    private ActivityMovieDetailBinding detailsBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_movie_detail);
+        detailsBinding = DataBindingUtil.setContentView(this, R.layout.activity_movie_detail);
         mEmptyStateTextView = (TextView) findViewById(R.id.empty_view);
 
         // Get intent data
@@ -50,20 +53,15 @@ public class MovieDetail extends AppCompatActivity implements LoaderManager.Load
         final int id = i.getExtras().getInt("movieId");
         String movieId = String.valueOf(id);
 
-        TextView tvTitle = (TextView) findViewById(R.id.tv_title);
-        tvTitle.setText(title);
+        detailsBinding.tvTitle.setText(title);
 
-        ImageView ivPoster = (ImageView) findViewById(R.id.iv_poster);
-        Picasso.with(this).load(path).into(ivPoster);
+        Picasso.with(this).load(path).into(detailsBinding.ivPoster);
 
-        TextView tvReleaseDate = (TextView) findViewById(R.id.tv_release_date);
-        tvReleaseDate.setText(date);
+        detailsBinding.tvReleaseDate.setText(date);
 
-        TextView tvRating = (TextView) findViewById(R.id.tv_rating);
-        tvRating.setText(String.valueOf(rating));
+        detailsBinding.tvRating.setText(String.valueOf(rating));
 
-        TextView tvSynopsis = (TextView) findViewById(R.id.tv_synopsis);
-        tvSynopsis.setText(synopsis);
+        detailsBinding.tvSynopsis.setText(synopsis);
 
 
         ConnectivityManager connMgr = (ConnectivityManager)
@@ -74,13 +72,15 @@ public class MovieDetail extends AppCompatActivity implements LoaderManager.Load
             Bundle b = new Bundle();
             b.putString("movie_id", movieId);
             loaderManager.initLoader(MOVIE_LOADER_ID, b, this);
-        }else {
-            View loadingIndicator = findViewById(R.id.loading_indicator);
-            loadingIndicator.setVisibility(View.GONE);
-            mEmptyStateTextView.setText(R.string.no_internet_connection);
         }
 
-
+        //Setup the movie trailer RecyclerView
+        LinearLayoutManager horizontalLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        trailerAdapter = new TrailerAdapter(this);
+        SnapHelper snapHelper = new LinearSnapHelper();
+        detailsBinding.inTrailers.rvMovieTrailers.setLayoutManager(horizontalLayoutManager);
+        detailsBinding.inTrailers.rvMovieTrailers.setAdapter(trailerAdapter);
+        snapHelper.attachToRecyclerView(detailsBinding.inTrailers.rvMovieTrailers);
     }
 
     @Override
@@ -137,37 +137,21 @@ public class MovieDetail extends AppCompatActivity implements LoaderManager.Load
 
     @Override
     public void onLoadFinished(Loader<Movies> loader, Movies data) {
-        View loadingIndicator = findViewById(R.id.loading_indicator);
-        loadingIndicator.setVisibility(View.GONE);
-
-
 
         if (data != null) {
 
             List<String> movieReviews = data.getMovieReview();
             List<String> movieTrailers = data.getMovieTrailers();
 
-            for(String youtubeId : movieTrailers){
-
-                trailer = youtubeId;
-                Button showTrailer = (Button) findViewById(R.id.button_show_trailer);
-                showTrailer.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-
-                    Intent openTrailer = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + trailer));
-
-                    if (openTrailer.resolveActivity(getPackageManager()) != null) {
-                        startActivity(openTrailer);
-                    }
-
-                }
-                });
+            if(movieTrailers.size() > 0){
+                trailerAdapter.setTrailerArrayList(movieTrailers);
             }
-        }
 
-        // Set empty state text to display "No trailers and reviews found."
-        mEmptyStateTextView.setText(R.string.no_trailers_and_reviews);
+//                        // Set empty state text to display "No trailers and reviews found."
+//                        mEmptyStateTextView.setText(R.string.no_trailers_and_reviews);
+//                    }
+
+        }
 
     }
 
