@@ -31,4 +31,7 @@
     <!-- Text to display as a label in the layout (Trailers:) [CHAR LIMIT=NONE] -->
     <string name="trailers_label">Trailers:</string>
 
+    <!-- Text to display as a label in the layout (Reviews:) [CHAR LIMIT=NONE] -->
+    <string name="reviews_label">Reviews</string>
+
 </resources>

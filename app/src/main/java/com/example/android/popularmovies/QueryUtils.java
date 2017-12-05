@@ -197,7 +197,8 @@ public final class QueryUtils {
 
     private static Movies extractReviewsAndTrailersFromJson(String movieJSON) {
 
-        List<String> reviews = new ArrayList<>();
+        List<String> reviewsAuthor = new ArrayList<>();
+        List<String> reviewsContent = new ArrayList<>();
         List<String> youtubeIds = new ArrayList<>();
 
         // If the JSON string is empty or null, then return early.
@@ -218,9 +219,11 @@ public final class QueryUtils {
 
                 JSONObject currentReviewResult = reviewsResultsArray.getJSONObject(i);
 
-                String review = currentReviewResult.getString("content");
+                String reviewAuthor = currentReviewResult.getString("author");
+                String reviewContent = currentReviewResult.getString("content");
 
-                reviews.add(review);
+                reviewsAuthor.add(reviewAuthor);
+                reviewsContent.add(reviewContent);
             }
 
             JSONObject movieVideos = baseJsonResponse.getJSONObject("videos");
@@ -234,7 +237,7 @@ public final class QueryUtils {
                 youtubeIds.add(youtubeId);
             }
 
-            Movies reviewsAndTrailers = new Movies(reviews, youtubeIds);
+            Movies reviewsAndTrailers = new Movies(reviewsAuthor, reviewsContent, youtubeIds);
             return reviewsAndTrailers;
 
         } catch (JSONException e) {

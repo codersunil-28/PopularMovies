@@ -33,6 +33,7 @@ public class MovieDetail extends AppCompatActivity implements LoaderManager.Load
     private static final String APPEND_STRING = "append_to_response";
     private static final String REVIEWS_AND_TRAILERS = "reviews,videos";
     private TrailerAdapter trailerAdapter;
+    private ReviewAdapter reviewAdapter;
     private ActivityMovieDetailBinding detailsBinding;
 
     @Override
@@ -81,6 +82,12 @@ public class MovieDetail extends AppCompatActivity implements LoaderManager.Load
         detailsBinding.inTrailers.rvMovieTrailers.setLayoutManager(horizontalLayoutManager);
         detailsBinding.inTrailers.rvMovieTrailers.setAdapter(trailerAdapter);
         snapHelper.attachToRecyclerView(detailsBinding.inTrailers.rvMovieTrailers);
+
+        //Setup the movie review RecyclerView
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        reviewAdapter = new ReviewAdapter(this);
+        detailsBinding.inReviews.rvReviews.setLayoutManager(layoutManager);
+        detailsBinding.inReviews.rvReviews.setAdapter(reviewAdapter);
     }
 
     @Override
@@ -140,12 +147,18 @@ public class MovieDetail extends AppCompatActivity implements LoaderManager.Load
 
         if (data != null) {
 
-            List<String> movieReviews = data.getMovieReview();
+            List<String> movieReviewsAuthor = data.getMovieReviewsAuthor();
+            List<String> movieReviewsContent = data.getMovieReviewsContent();
             List<String> movieTrailers = data.getMovieTrailers();
 
             if(movieTrailers.size() > 0){
                 trailerAdapter.setTrailerArrayList(movieTrailers);
             }
+
+            if (movieReviewsAuthor.size() > 0 && movieReviewsContent.size() > 0){
+                reviewAdapter.setReviewArrayList(movieReviewsAuthor, movieReviewsContent);
+            }
+
 
 //                        // Set empty state text to display "No trailers and reviews found."
 //                        mEmptyStateTextView.setText(R.string.no_trailers_and_reviews);

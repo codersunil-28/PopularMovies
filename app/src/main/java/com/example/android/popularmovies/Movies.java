@@ -16,7 +16,8 @@ public class Movies {
     private String releaseDate;
     private int movieId;
     private static final String BASE_PATH_OF_POSTER = "http://image.tmdb.org/t/p/w185";
-    List<String> mReview = new ArrayList<>();
+    List<String> mReviewsAuthor = new ArrayList<>();
+    List<String> mReviewsContent = new ArrayList<>();
     List<String> mYoutubeId = new ArrayList<>();
 
     public Movies(String title, String path, String synopsis, double rating, String date, int id) {
@@ -28,8 +29,9 @@ public class Movies {
         movieId = id;
     }
 
-    public Movies(List<String> review, List<String> youtubeId){
-        mReview = review;
+    public Movies(List<String> reviewsAuthor, List<String> reviewsContent, List<String> youtubeId){
+        mReviewsAuthor = reviewsAuthor;
+        mReviewsContent = reviewsContent;
         mYoutubeId = youtubeId;
     }
 
@@ -61,8 +63,12 @@ public class Movies {
         return movieId;
     }
 
-    public List<String> getMovieReview() {
-        return mReview;
+    public List<String> getMovieReviewsAuthor() {
+        return mReviewsAuthor;
+    }
+
+    public List<String> getMovieReviewsContent() {
+        return mReviewsContent;
     }
 
     public List<String> getMovieTrailers() {

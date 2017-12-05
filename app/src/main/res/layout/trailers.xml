@@ -10,13 +10,9 @@
 
     <TextView
         android:id="@+id/tv_trailers"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingBottom="16dp"
-        android:textStyle="bold"
         tools:text="@string/trailers"
         android:text="@string/trailers_label"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        style="@style/Header"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"/>
 
