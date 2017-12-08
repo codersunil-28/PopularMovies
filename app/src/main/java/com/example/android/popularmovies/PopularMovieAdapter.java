@@ -33,7 +33,6 @@ public class PopularMovieAdapter extends ArrayAdapter<Movies> {
         this.moviesData = moviesData;
     }
 
-
     public int getCount() {
         return moviesData.size();
     }

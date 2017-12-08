@@ -2,6 +2,7 @@ package com.example.android.popularmovies;
 
 import android.app.LoaderManager;
 import android.content.AsyncTaskLoader;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
@@ -14,9 +15,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.LinearSnapHelper;
 import android.support.v7.widget.SnapHelper;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.android.popularmovies.data.MovieContract;
 import com.example.android.popularmovies.databinding.ActivityMovieDetailBinding;
 import com.squareup.picasso.Picasso;
 
@@ -35,6 +40,12 @@ public class MovieDetail extends AppCompatActivity implements LoaderManager.Load
     private TrailerAdapter trailerAdapter;
     private ReviewAdapter reviewAdapter;
     private ActivityMovieDetailBinding detailsBinding;
+    private Boolean favorite = false;
+
+
+
+    private String path;
+//    FavMovieAdapter favMovieAdapter = new FavMovieAdapter(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,11 +58,11 @@ public class MovieDetail extends AppCompatActivity implements LoaderManager.Load
 
 
         String title = i.getExtras().getString("title");
-        String path = i.getExtras().getString("path");
+        path = i.getExtras().getString("path");
         String synopsis = i.getExtras().getString("synopsis");
         double rating = i.getExtras().getDouble("rating");
         String date = i.getExtras().getString("date");
-        final int id = i.getExtras().getInt("movieId");
+        int id = i.getExtras().getInt("movieId");
         String movieId = String.valueOf(id);
 
         detailsBinding.tvTitle.setText(title);
@@ -88,6 +99,7 @@ public class MovieDetail extends AppCompatActivity implements LoaderManager.Load
         reviewAdapter = new ReviewAdapter(this);
         detailsBinding.inReviews.rvReviews.setLayoutManager(layoutManager);
         detailsBinding.inReviews.rvReviews.setAdapter(reviewAdapter);
+
     }
 
     @Override
@@ -172,4 +184,64 @@ public class MovieDetail extends AppCompatActivity implements LoaderManager.Load
     public void onLoaderReset(Loader<Movies> loader) {
 
     }
+
+    public void insertAndDeleteData(View view){
+        ConnectivityManager connMgr = (ConnectivityManager)
+                getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isConnected()) {
+
+            if(favorite){
+                detailsBinding.ivFavButton.setImageResource(R.drawable.ic_favorite_black_48dp);
+                deleteFavoriteFromDb(path);
+//                favMovieAdapter.swapCursor(getAllPosterPath());
+                favorite = false;
+            }else {
+                detailsBinding.ivFavButton.setImageResource(R.drawable.ic_favorite_red_48dp);
+                insertFavoriteToDb(path);
+//                favMovieAdapter.swapCursor(getAllPosterPath());
+                favorite = true;
+            }
+        }else{
+            Toast.makeText(MovieDetail.this, "Favorites can't be modified offline", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+    }
+
+
+    private void insertFavoriteToDb(String posterPath) {
+
+        if((posterPath == null) || (TextUtils.isEmpty(posterPath))){
+            return;
+        }
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MovieContract.MovieEntry.COLUMN_POSTER_PATH,posterPath);
+        Uri uri = getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI,contentValues);
+
+        if(uri != null) {
+            Toast.makeText(getBaseContext(), "Movie added to Favorite", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void deleteFavoriteFromDb(String posterPath) {
+
+        String where = MovieContract.MovieEntry.COLUMN_POSTER_PATH + "=?";
+        getContentResolver().delete(MovieContract.MovieEntry.MOVIE_CONTENT_URI, where, new String[]{posterPath});
+    }
+
+//    private Cursor getAllPosterPath() {
+//        return mDb.query(
+//                MovieContract.MovieEntry.TABLE_NAME,
+//                null,
+//                null,
+//                null,
+//                null,
+//                null,
+//                MovieContract.MovieEntry.COLUMN_POSTER_PATH
+//        );
+//    }
+
+
 }

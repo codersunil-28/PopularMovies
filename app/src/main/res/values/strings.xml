@@ -5,10 +5,13 @@
     <string name="movie_detail">MovieDetail</string>
 
     <!-- Menu item in MainActivity -->
-    <string name="most_popular">most popular</string>
+    <string name="most_popular">Most Popular</string>
 
     <!-- Menu item in MainActivity -->
-    <string name="highest_rated">highest rated</string>
+    <string name="highest_rated">Highest Rated</string>
+
+    <!-- Menu item in MainActivity -->
+    <string name="favorite">Favorite</string>
 
     <!-- Error message when there is no internet connectivity [CHAR LIMIT=NONE] -->
     <string name="no_internet_connection">No internet connection.</string>
@@ -33,5 +36,7 @@
 
     <!-- Text to display as a label in the layout (Reviews:) [CHAR LIMIT=NONE] -->
     <string name="reviews_label">Reviews</string>
+
+
 
 </resources>

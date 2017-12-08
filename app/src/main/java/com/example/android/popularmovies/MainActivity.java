@@ -5,6 +5,7 @@ import android.content.AsyncTaskLoader;
 import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -19,18 +20,27 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.TextView;
 
+import com.example.android.popularmovies.data.MovieContract;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Movies>> {
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks {
 
     private ArrayList<Movies> mMoviesData;
     private TextView mEmptyStateTextView;
     private PopularMovieAdapter mAdapter;
+    private FavMovieAdapter favMovieAdapter;
     private static final int MOVIE_LOADER_ID = 1;
     private static final String MOVIE_BASE_URL = "https://api.themoviedb.org/3/movie/";
     private static final String API_KEY = "8269544114add3a8508b7721bf799f09";
     private static final String API_KEY_STRING = "api_key";
+    GridView gridview;
+    Cursor c;
+    private final String TAG = MainActivity.class.getSimpleName();
+
+
+    public static final int FAVORITES_MOVIE_LOADER_ID = 3;
 
 
     @Override
@@ -38,7 +48,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        GridView gridview = (GridView) findViewById(R.id.gridview);
+        gridview = (GridView) findViewById(R.id.gridview);
         mEmptyStateTextView = (TextView) findViewById(R.id.empty_view);
         gridview.setEmptyView(mEmptyStateTextView);
         mMoviesData = new ArrayList<>();
@@ -49,22 +59,27 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                Movies currentMovie = (Movies) parent.getItemAtPosition(position);
-                String title = currentMovie.getOriginalTitle();
-                String path = currentMovie.getPosterPath();
-                String synopsis = currentMovie.getPlotSynopsis();
-                double rating = currentMovie.getUserRating();
-                String date = currentMovie.getReleaseDate();
-                int movieId = currentMovie.getMovieId();
+                try {
+                    Movies currentMovie = (Movies) parent.getItemAtPosition(position);
+                    String title = currentMovie.getOriginalTitle();
+                    String path = currentMovie.getPosterPath();
+                    String synopsis = currentMovie.getPlotSynopsis();
+                    double rating = currentMovie.getUserRating();
+                    String date = currentMovie.getReleaseDate();
+                    int movieId = currentMovie.getMovieId();
 
-                Intent intent = new Intent(MainActivity.this, MovieDetail.class);
-                intent.putExtra("title", title);
-                intent.putExtra("path", path);
-                intent.putExtra("synopsis", synopsis);
-                intent.putExtra("rating", rating);
-                intent.putExtra("date", date);
-                intent.putExtra("movieId", movieId);
-                startActivity(intent);
+                    Intent intent = new Intent(MainActivity.this, MovieDetail.class);
+                    intent.putExtra("title", title);
+                    intent.putExtra("path", path);
+                    intent.putExtra("synopsis", synopsis);
+                    intent.putExtra("rating", rating);
+                    intent.putExtra("date", date);
+                    intent.putExtra("movieId", movieId);
+                    startActivity(intent);
+                }catch (RuntimeException e){
+                    e.printStackTrace();
+                    Log.v("Open Detail Activity : ","Can't open");
+                }
             }
         });
 
@@ -100,25 +115,72 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     @Override
-    public Loader<List<Movies>> onCreateLoader(int id, Bundle args) {
+    public Loader onCreateLoader(int id, Bundle args) {
 
-        String apiParam = null;
-        if ((args != null) && (args.getString("sort_order") != null)) {
-            apiParam = args.getString("sort_order");
+        switch (id) {
+
+            case MOVIE_LOADER_ID:
+
+            String apiParam = null;
+            if ((args != null) && (args.getString("sort_order") != null)) {
+                apiParam = args.getString("sort_order");
+            }
+
+            Uri baseUri = Uri.parse(MOVIE_BASE_URL + apiParam);
+            Uri.Builder uriBuilder = baseUri.buildUpon();
+            uriBuilder.appendQueryParameter(API_KEY_STRING, API_KEY);
+            uriBuilder.appendQueryParameter("language", "en-US");
+            uriBuilder.appendQueryParameter("page", "1");
+
+            return new MoviesLoader(this, uriBuilder.toString());
+
+            case FAVORITES_MOVIE_LOADER_ID:
+
+                return new AsyncTaskLoader<Cursor>(this) {
+                    @Override
+                    protected void onStartLoading() {
+                        forceLoad();
+                    }
+
+                    @Override
+                    public Cursor loadInBackground() {
+                        try {
+                            return getContentResolver().query(MovieContract.MovieEntry.MOVIE_CONTENT_URI,
+                                    new String[]{MovieContract.MovieEntry.COLUMN_POSTER_PATH},
+                                    null,
+                                    null,
+                                    null);
+
+                        } catch (Exception e) {
+                            Log.e(TAG, "Failed to asynchronously load data.");
+                            e.printStackTrace();
+                            return null;
+                        }
+                    }
+                };
+
+            default:
+                throw new RuntimeException("Loader Not Implemented: " + id);
         }
-
-        Uri baseUri = Uri.parse(MOVIE_BASE_URL + apiParam);
-        Uri.Builder uriBuilder = baseUri.buildUpon();
-        uriBuilder.appendQueryParameter(API_KEY_STRING, API_KEY);
-        uriBuilder.appendQueryParameter("language", "en-US");
-        uriBuilder.appendQueryParameter("page", "1");
-
-        return new MoviesLoader(this, uriBuilder.toString());
     }
 
     @Override
-    public void onLoaderReset(Loader<List<Movies>> loader) {
-        mAdapter.clear();
+    public void onLoaderReset(Loader loader) {
+
+        switch (loader.getId()) {
+
+            case MOVIE_LOADER_ID:
+
+                mAdapter.clear();
+                break;
+
+            case FAVORITES_MOVIE_LOADER_ID:
+
+                new FavMovieAdapter(this).swapCursor(null);
+
+            default:
+                throw new RuntimeException("Loader Not Reset: " + loader.getId());
+        }
     }
 
     private static class MoviesLoader extends AsyncTaskLoader<List<Movies>> {
@@ -159,23 +221,36 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     @Override
-    public void onLoadFinished(Loader<List<Movies>> loader, List<Movies> moviesList) {
+    public void onLoadFinished(Loader loader, Object data) {
+        switch (loader.getId()) {
+            case MOVIE_LOADER_ID:
 
-        // Hide loading indicator because the data has been loaded
-        View loadingIndicator = findViewById(R.id.loading_indicator);
-        loadingIndicator.setVisibility(View.GONE);
+                // Hide loading indicator because the data has been loaded
+                View loadingIndicator = findViewById(R.id.loading_indicator);
+                loadingIndicator.setVisibility(View.GONE);
 
-        mAdapter.clear();
+                mAdapter.clear();
 
-        if (moviesList != null && !moviesList.isEmpty()) {
-            mMoviesData.addAll(moviesList);
-            mAdapter.setGridData(mMoviesData);
+                List<Movies> moviesList = (List) data;
+
+                if (moviesList != null && !moviesList.isEmpty()) {
+
+                    mMoviesData.addAll(moviesList);
+                    mAdapter.setGridData(mMoviesData);
+                }
+
+                // Set empty state text to display "No movies found."
+                mEmptyStateTextView.setText(R.string.no_movies);
+
+                break;
+
+            case FAVORITES_MOVIE_LOADER_ID:
+                c = (Cursor) data;
+
+                favMovieAdapter.swapCursor(c);
+                break;
         }
-
-        // Set empty state text to display "No movies found."
-        mEmptyStateTextView.setText(R.string.no_movies);
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -199,8 +274,30 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 getLoaderManager().restartLoader(MOVIE_LOADER_ID, b, this);
                 return true;
 
+            case R.id.favorite:
+
+                c = null;
+                getFavoriteMovies();
+                favMovieAdapter = new FavMovieAdapter(this,c);
+                gridview.setAdapter(favMovieAdapter);
+
+                return true;
+
             default:
                 return super.onOptionsItemSelected(item);
+        }
+
+    }
+
+    public void getFavoriteMovies() {
+
+        LoaderManager loaderManager = getLoaderManager();
+        Loader<Cursor> favoriteMovieLoader = loaderManager.getLoader(FAVORITES_MOVIE_LOADER_ID);
+
+        if (favoriteMovieLoader == null){
+            loaderManager.initLoader(FAVORITES_MOVIE_LOADER_ID, null, this);
+        } else {
+            loaderManager.restartLoader(FAVORITES_MOVIE_LOADER_ID, null, this);
         }
 
     }
