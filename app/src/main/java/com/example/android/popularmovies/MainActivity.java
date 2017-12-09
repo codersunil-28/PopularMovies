@@ -112,6 +112,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             mEmptyStateTextView.setText(R.string.no_internet_connection);
         }
 
+//        getLoaderManager().initLoader(FAVORITES_MOVIE_LOADER_ID, null, this);
     }
 
     @Override
@@ -145,8 +146,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                     @Override
                     public Cursor loadInBackground() {
                         try {
-                            return getContentResolver().query(MovieContract.MovieEntry.MOVIE_CONTENT_URI,
-                                    new String[]{MovieContract.MovieEntry.COLUMN_POSTER_PATH},
+                            return getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
+                                    null,
                                     null,
                                     null,
                                     null);
@@ -301,5 +302,4 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
 
     }
-
 }

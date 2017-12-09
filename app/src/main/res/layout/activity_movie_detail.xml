@@ -60,17 +60,19 @@
                 app:layout_constraintLeft_toRightOf="@id/iv_poster"
                 app:layout_constraintRight_toRightOf="parent"/>
 
-            <ImageButton
-                android:id="@+id/iv_fav_button"
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/fa_fav_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                app:backgroundTint="@android:color/white"
+                app:fabSize="mini"
                 app:layout_constraintTop_toBottomOf="@+id/tv_rating"
                 app:layout_constraintLeft_toRightOf="@id/iv_poster"
                 app:layout_constraintRight_toRightOf="parent"
                 android:layout_marginTop="20dp"
-                android:src="@drawable/ic_favorite_black_48dp"
-                android:onClick="insertAndDeleteData"
-                android:background="@android:color/transparent"/>
+                android:src="@drawable/ic_favorite_black_48dp" />
 
             <TextView
                 android:id="@+id/tv_synopsis"
