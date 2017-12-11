@@ -65,7 +65,7 @@ public class MovieDetail extends AppCompatActivity implements LoaderManager.Load
         // Get intent data
         Intent i = getIntent();
 
-        currentMovie = i.getParcelableExtra("Movies");
+        currentMovie = i.getParcelableExtra(MainActivity.CURRENT_MOVIE_KEY);
 
 
         title = currentMovie.getOriginalTitle();
