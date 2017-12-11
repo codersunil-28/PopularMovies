@@ -3,6 +3,7 @@ package com.example.android.popularmovies;
 import android.app.LoaderManager;
 import android.content.AsyncTaskLoader;
 import android.content.Context;
+import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
@@ -22,14 +23,17 @@ import com.example.android.popularmovies.data.MovieContract;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks {
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks,
+MovieAdapter.setOnMovieClick{
 
-    private ArrayList<Movies> mMoviesData = new ArrayList<>();
+    private ArrayList<Movies> mMoviesData;
     private MovieAdapter movieAdapter;
     private static final int MOVIE_LOADER_ID = 1;
     private static final String MOVIE_BASE_URL = "https://api.themoviedb.org/3/movie/";
     private static final String API_KEY = "8269544114add3a8508b7721bf799f09";
     private static final String API_KEY_STRING = "api_key";
+    private RecyclerView recyclerView;
+    public static final String CURRENT_MOVIE_KEY = "currentMovie";
 
     Cursor c;
     private final String TAG = MainActivity.class.getSimpleName();
@@ -42,13 +46,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        mMoviesData = new ArrayList<>();
+        recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         GridLayoutManager gridLayoutManager = new GridLayoutManager(getApplicationContext(),2);
         recyclerView.setLayoutManager(gridLayoutManager);
-        movieAdapter = new MovieAdapter(MainActivity.this, mMoviesData);
+        movieAdapter = new MovieAdapter(MainActivity.this, mMoviesData, this);
         recyclerView.setAdapter(movieAdapter);
-
         ConnectivityManager connMgr = (ConnectivityManager)
                 getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
@@ -127,6 +130,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
     }
 
+    @Override
+    public void onMovieClick(int position) {
+        Movies movie = mMoviesData.get(position);
+        if (movie != null && mMoviesData.size() > 0) {
+            Intent intent = new Intent(this, MovieDetail.class);
+            intent.putExtra(CURRENT_MOVIE_KEY, movie);
+            startActivity(intent);
+        }
+    }
+
     private static class MoviesLoader extends AsyncTaskLoader<ArrayList<Movies>> {
         /**
          * Tag for log messages
@@ -170,13 +183,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         switch (loader.getId()) {
             case MOVIE_LOADER_ID:
 
-                ArrayList<Movies> moviesList = (ArrayList) data;
+                mMoviesData = (ArrayList) data;
 
-                if (moviesList != null && !moviesList.isEmpty()) {
-
-                    mMoviesData.addAll(moviesList);
-
+                if (mMoviesData != null && !mMoviesData.isEmpty()) {
+                    boolean val = mMoviesData.addAll(mMoviesData);
                     movieAdapter.setMovieArrayList(mMoviesData);
+                    Log.v(TAG, "onLoadFinished ArrayList value "+ mMoviesData.size() + val);
                 }
 
                 break;

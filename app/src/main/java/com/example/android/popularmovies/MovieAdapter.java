@@ -1,9 +1,7 @@
 package com.example.android.popularmovies;
 
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
-import android.os.Parcelable;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,11 +29,17 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MyViewHolder
     Context context;
     ArrayList movieList;
     private Cursor mCursor;
+    private setOnMovieClick setOnMovieClick;
     public static final String LOG_TAG = MovieAdapter.class.getName();
 
-    public MovieAdapter(Context context, ArrayList movieList) {
+    public MovieAdapter(Context context, ArrayList movieList, setOnMovieClick setOnMovieClick) {
         this.context = context;
         this.movieList = movieList;
+        this.setOnMovieClick = setOnMovieClick;
+    }
+    
+    public interface setOnMovieClick{
+        void onMovieClick(int position);
     }
 
 
@@ -102,10 +106,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MyViewHolder
 
         @Override
         public void onClick(View v) {
-            Intent intent = new Intent(context, MovieDetail.class);
             int position = getAdapterPosition();
-            intent.putExtra("currentMovie", (Parcelable) movieList.get(position));
-            context.startActivity(intent);
+            setOnMovieClick.onMovieClick(position);
         }
     }
 
