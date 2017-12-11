@@ -33,8 +33,11 @@ MovieAdapter.setOnMovieClick{
     private static final String API_KEY = "8269544114add3a8508b7721bf799f09";
     private static final String API_KEY_STRING = "api_key";
     private RecyclerView recyclerView;
+    private GridLayoutManager gridLayoutManager;
     public static final String CURRENT_MOVIE_KEY = "currentMovie";
-
+    public static final String SORT_ORDER = "sort_order";
+    public static final String TOP_RATED = "top_rated";
+    public static final String POPULAR = "popular";
     Cursor c;
     private final String TAG = MainActivity.class.getSimpleName();
 
@@ -46,21 +49,24 @@ MovieAdapter.setOnMovieClick{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         mMoviesData = new ArrayList<>();
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(getApplicationContext(),2);
+        gridLayoutManager = new GridLayoutManager(getApplicationContext(),2);
         recyclerView.setLayoutManager(gridLayoutManager);
         movieAdapter = new MovieAdapter(MainActivity.this, mMoviesData, this);
         recyclerView.setAdapter(movieAdapter);
+
         ConnectivityManager connMgr = (ConnectivityManager)
                 getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+
         if (networkInfo != null && networkInfo.isConnected()) {
 
             LoaderManager loaderManager = getLoaderManager();
 
             Bundle b = new Bundle();
-            b.putString("sort_order", "popular");
+            b.putString(SORT_ORDER, POPULAR);
 
             loaderManager.initLoader(MOVIE_LOADER_ID, b, this);
 
@@ -80,8 +86,8 @@ MovieAdapter.setOnMovieClick{
             case MOVIE_LOADER_ID:
 
             String apiParam = null;
-            if ((args != null) && (args.getString("sort_order") != null)) {
-                apiParam = args.getString("sort_order");
+            if ((args != null) && (args.getString(SORT_ORDER) != null)) {
+                apiParam = args.getString(SORT_ORDER);
             }
 
             Uri baseUri = Uri.parse(MOVIE_BASE_URL + apiParam);
@@ -125,9 +131,6 @@ MovieAdapter.setOnMovieClick{
     @Override
     public void onLoaderReset(Loader loader) {
 
-        if(loader.getId() == FAVORITES_MOVIE_LOADER_ID){
-            movieAdapter.setMovieArrayList(null);
-        }
     }
 
     @Override
@@ -141,14 +144,9 @@ MovieAdapter.setOnMovieClick{
     }
 
     private static class MoviesLoader extends AsyncTaskLoader<ArrayList<Movies>> {
-        /**
-         * Tag for log messages
-         */
+
         private final String LOG_TAG = MoviesLoader.class.getName();
 
-        /**
-         * Query URL
-         */
         private String mUrl;
 
         public MoviesLoader(Context context, String url) {
@@ -161,9 +159,6 @@ MovieAdapter.setOnMovieClick{
             forceLoad();
         }
 
-        /**
-         * This is on a background thread.
-         */
         @Override
         public ArrayList<Movies> loadInBackground() {
             Log.i(LOG_TAG, "TEST: loadInBackground() Called");
@@ -215,12 +210,12 @@ MovieAdapter.setOnMovieClick{
         Bundle b = new Bundle();
         switch (item.getItemId()) {
             case R.id.most_pop:
-                b.putString("sort_order", "popular");
+                b.putString(SORT_ORDER, POPULAR);
                 getLoaderManager().restartLoader(MOVIE_LOADER_ID, b, this);
                 return true;
 
             case R.id.high_rated:
-                b.putString("sort_order", "top_rated");
+                b.putString(SORT_ORDER, TOP_RATED);
                 getLoaderManager().restartLoader(MOVIE_LOADER_ID, b, this);
                 return true;
 
@@ -249,9 +244,4 @@ MovieAdapter.setOnMovieClick{
 
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        getLoaderManager().restartLoader(FAVORITES_MOVIE_LOADER_ID, null, this);
-    }
 }

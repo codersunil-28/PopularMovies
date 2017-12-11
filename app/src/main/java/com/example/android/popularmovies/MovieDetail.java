@@ -59,10 +59,9 @@ public class MovieDetail extends AppCompatActivity implements LoaderManager.Load
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         detailsBinding = DataBindingUtil.setContentView(this, R.layout.activity_movie_detail);
 
-
-        // Get intent data
         Intent i = getIntent();
 
         currentMovie = i.getParcelableExtra(MainActivity.CURRENT_MOVIE_KEY);
@@ -280,9 +279,11 @@ public class MovieDetail extends AppCompatActivity implements LoaderManager.Load
         contentValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID, movieId);
 
         Uri uri = getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, contentValues);
+        Log.v(LOG_TAG,uri.toString());
         if(uri != null) {
             Toast.makeText(getBaseContext(), uri.toString(), Toast.LENGTH_LONG).show();
         }
+
 
 //        LoaderManager loaderManager = getLoaderManager();
 //        Loader<Cursor> queryFavoriteMovieLoader = loaderManager.getLoader(QUERY_LOADER_ID);
@@ -298,7 +299,8 @@ public class MovieDetail extends AppCompatActivity implements LoaderManager.Load
 
         Uri uri = MovieContract.MovieEntry.CONTENT_URI;
         uri = uri.buildUpon().appendPath(movieId).build();
-        getContentResolver().delete(uri, null, null);
+        int taskDeleted = getContentResolver().delete(uri, null, null);
+        Log.v(LOG_TAG,String.valueOf(taskDeleted));
 
 //        LoaderManager loaderManager = getLoaderManager();
 //        Loader<Cursor> queryFavoriteMovieLoader = loaderManager.getLoader(QUERY_LOADER_ID);
