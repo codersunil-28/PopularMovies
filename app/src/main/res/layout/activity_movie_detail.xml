@@ -72,7 +72,8 @@
                 app:layout_constraintLeft_toRightOf="@id/iv_poster"
                 app:layout_constraintRight_toRightOf="parent"
                 android:layout_marginTop="20dp"
-                android:src="@drawable/ic_favorite_black_48dp" />
+                android:src="@drawable/ic_favorite_black_48dp"
+                android:onClick="insertDeleteFavMovie"/>
 
             <TextView
                 android:id="@+id/tv_synopsis"

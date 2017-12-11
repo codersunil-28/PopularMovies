@@ -11,9 +11,8 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import static com.example.android.popularmovies.data.MovieContract.MovieEntry.COLUMN_POSTER_PATH;
+import static com.example.android.popularmovies.data.MovieContract.MovieEntry.COLUMN_MOVIE_ID;
 import static com.example.android.popularmovies.data.MovieContract.MovieEntry.CONTENT_URI;
-import static com.example.android.popularmovies.data.MovieContract.MovieEntry.PATH_MOVIES_COLUMN_POSTER_PATH;
 import static com.example.android.popularmovies.data.MovieContract.MovieEntry.TABLE_NAME;
 
 /**
@@ -22,15 +21,15 @@ import static com.example.android.popularmovies.data.MovieContract.MovieEntry.TA
 
 public class MovieContentProvider extends ContentProvider {
 
-//    public static final int MOVIES = 100;
-    public static final int MOVIES_COLUMN_POSTER_PATH = 101;
+    public static final int MOVIES = 100;
+    public static final int MOVIES_WITH_ID = 101;
     private MovieDbHelper movieDbHelper;
     private static final UriMatcher sUriMatcher = buildUriMatcher();
 
     public static UriMatcher buildUriMatcher(){
         UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-//        uriMatcher.addURI(MovieContract.AUTHORITY,MovieContract.PATH_MOVIES,MOVIES);
-        uriMatcher.addURI(MovieContract.AUTHORITY, PATH_MOVIES_COLUMN_POSTER_PATH, MOVIES_COLUMN_POSTER_PATH);
+        uriMatcher.addURI(MovieContract.AUTHORITY,MovieContract.PATH_MOVIES,MOVIES);
+        uriMatcher.addURI(MovieContract.AUTHORITY, MovieContract.PATH_MOVIES + "/#", MOVIES_WITH_ID);
         return uriMatcher;
     }
 
@@ -50,8 +49,8 @@ public class MovieContentProvider extends ContentProvider {
         Cursor retCursor;
 
         switch (match){
-            case MOVIES_COLUMN_POSTER_PATH:
-                retCursor = db.query(PATH_MOVIES_COLUMN_POSTER_PATH,
+            case MOVIES:
+                retCursor = db.query(TABLE_NAME,
                         projection,
                         selection,
                         selectionArgs,
@@ -82,8 +81,8 @@ public class MovieContentProvider extends ContentProvider {
         Uri returnUri;
 
         switch(match){
-            case MOVIES_COLUMN_POSTER_PATH:
-                long id = db.insert(PATH_MOVIES_COLUMN_POSTER_PATH, null,values);
+            case MOVIES:
+                long id = db.insert(TABLE_NAME, null,values);
                 if(id > 0){
                     returnUri = ContentUris.withAppendedId(CONTENT_URI, id);
                 }else{
@@ -105,11 +104,11 @@ public class MovieContentProvider extends ContentProvider {
         int tasksDeleted;
         switch (match) {
 
-            case MOVIES_COLUMN_POSTER_PATH:
+            case MOVIES_WITH_ID:
 
-                String posterPath = uri.getPathSegments().get(1);
+                String id = uri.getPathSegments().get(1);
 
-                tasksDeleted = db.delete(TABLE_NAME, COLUMN_POSTER_PATH + "=?", new String[]{posterPath});
+                tasksDeleted = db.delete(TABLE_NAME, COLUMN_MOVIE_ID + "=?", new String[]{id});
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);

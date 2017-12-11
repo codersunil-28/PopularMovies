@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by sunilkumar on 05/12/17.
@@ -18,8 +17,8 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewAdap
 
     private Context mContext;
     private static final String TAG = TrailerAdapter.class.getSimpleName();
-    private List<String> reviewAuthorArrayList = new ArrayList<>();
-    private List<String> reviewContentArrayList = new ArrayList<>();
+    private ArrayList<String> reviewAuthorArrayList = new ArrayList<>();
+    private ArrayList<String> reviewContentArrayList = new ArrayList<>();
 
     ReviewAdapter(Context context) {
         mContext = context;
@@ -70,7 +69,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewAdap
         }
     }
 
-    public void setReviewArrayList(List<String> reviewAuthorArrayList, List<String> reviewContentArrayList ){
+    public void setReviewArrayList(ArrayList<String> reviewAuthorArrayList, ArrayList<String> reviewContentArrayList ){
         this.reviewAuthorArrayList.clear();
         this.reviewContentArrayList.clear();
         this.reviewAuthorArrayList.addAll(reviewAuthorArrayList);

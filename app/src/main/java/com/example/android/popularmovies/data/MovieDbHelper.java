@@ -22,8 +22,13 @@ public class MovieDbHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
 
         final String SQL_CREATE_TABLE = "CREATE TABLE " + MovieEntry.TABLE_NAME + " (" +
-                MovieEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                MovieEntry.COLUMN_POSTER_PATH + " TEXT" +
+                MovieEntry._ID + " INTEGER PRIMARY KEY, " +
+                MovieEntry.COLUMN_TITLE + " TEXT NOT NULL, " +
+                MovieEntry.COLUMN_POSTER_PATH + " TEXT NOT NULL, " +
+                MovieEntry.COLUMN_SYNOPSIS + " TEXT NOT NULL, " +
+                MovieEntry.COLUMN_RATING + " TEXT NOT NULL, " +
+                MovieEntry.COLUMN_RELEASE_DATE + " TEXT NOT NULL, " +
+                MovieEntry.COLUMN_MOVIE_ID + " TEXT NOT NULL" +
                 "); ";
 
         db.execSQL(SQL_CREATE_TABLE);

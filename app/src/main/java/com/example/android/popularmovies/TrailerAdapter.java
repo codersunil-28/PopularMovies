@@ -13,7 +13,6 @@ import com.google.android.youtube.player.YouTubeThumbnailLoader;
 import com.google.android.youtube.player.YouTubeThumbnailView;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by sunilkumar on 02/12/17.
@@ -22,7 +21,7 @@ import java.util.List;
 public class TrailerAdapter extends RecyclerView.Adapter<TrailerAdapter.TrailerAdapterViewHolder>  {
 
     private static final String TAG = TrailerAdapter.class.getSimpleName();
-    private List<String> trailerArrayList = new ArrayList<>();
+    private ArrayList<String> trailerArrayList = new ArrayList<>();
     private final Activity activity;
 
     TrailerAdapter(Activity activity){
@@ -86,7 +85,7 @@ public class TrailerAdapter extends RecyclerView.Adapter<TrailerAdapter.TrailerA
 
     }
 
-    public void setTrailerArrayList(List<String> trailerArrayList){
+    public void setTrailerArrayList(ArrayList<String> trailerArrayList){
         this.trailerArrayList.clear();
         this.trailerArrayList.addAll(trailerArrayList);
 

@@ -16,7 +16,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by sunilkumar on 29/10/17.
@@ -32,7 +31,7 @@ public final class QueryUtils {
     private QueryUtils() {
     }
 
-    public static List<Movies> fetchPopularMoviesData(String requestUrl) {
+    public static ArrayList<Movies> fetchPopularMoviesData(String requestUrl) {
         URL url = createUrl(requestUrl);
 
         // Perform HTTP request to the URL and receive a JSON response back
@@ -43,7 +42,7 @@ public final class QueryUtils {
             Log.e(LOG_TAG, "Error closing input stream", e);
         }
 
-        List<Movies> moviesData = extractFeatureFromJson(jsonResponse);
+        ArrayList<Movies> moviesData = extractFeatureFromJson(jsonResponse);
 
         return moviesData;
     }
@@ -145,10 +144,10 @@ public final class QueryUtils {
      * Return an {@link Movies} object by parsing out information
      * about the "Most Popular Movie" from the input movieJSON string.
      */
-    private static List<Movies> extractFeatureFromJson(String movieJSON) {
+    private static ArrayList<Movies> extractFeatureFromJson(String movieJSON) {
 
         // Create an empty ArrayList that we can start adding movies to
-        List<Movies> moviesDataList = new ArrayList<>();
+        ArrayList<Movies> moviesDataList = new ArrayList<>();
 
         // If the JSON string is empty or null, then return early.
         if (TextUtils.isEmpty(movieJSON)) {
@@ -197,9 +196,9 @@ public final class QueryUtils {
 
     private static Movies extractReviewsAndTrailersFromJson(String movieJSON) {
 
-        List<String> reviewsAuthor = new ArrayList<>();
-        List<String> reviewsContent = new ArrayList<>();
-        List<String> youtubeIds = new ArrayList<>();
+        ArrayList<String> reviewsAuthor = new ArrayList<>();
+        ArrayList<String> reviewsContent = new ArrayList<>();
+        ArrayList<String> youtubeIds = new ArrayList<>();
 
         // If the JSON string is empty or null, then return early.
         if (TextUtils.isEmpty(movieJSON)) {
