@@ -72,6 +72,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MyViewHolder
                 String movieId = mCursor.getString(movieIdIndex);
                 int id = Integer.parseInt(movieId);
 
+                movieList.clear();
                 Movies movies = new Movies(title, path, synopsis, movieRating, date, id);
                 movieList.add(movies);
             }

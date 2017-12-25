@@ -11,7 +11,6 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import static com.example.android.popularmovies.data.MovieContract.MovieEntry.COLUMN_MOVIE_ID;
 import static com.example.android.popularmovies.data.MovieContract.MovieEntry.CONTENT_URI;
 import static com.example.android.popularmovies.data.MovieContract.MovieEntry.TABLE_NAME;
 
@@ -22,14 +21,14 @@ import static com.example.android.popularmovies.data.MovieContract.MovieEntry.TA
 public class MovieContentProvider extends ContentProvider {
 
     public static final int MOVIES = 100;
-    public static final int MOVIES_WITH_ID = 101;
+//    public static final int MOVIES_WITH_ID = 101;
     private MovieDbHelper movieDbHelper;
     private static final UriMatcher sUriMatcher = buildUriMatcher();
 
     public static UriMatcher buildUriMatcher(){
         UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
         uriMatcher.addURI(MovieContract.AUTHORITY,MovieContract.PATH_MOVIES,MOVIES);
-        uriMatcher.addURI(MovieContract.AUTHORITY, MovieContract.PATH_MOVIES + "/#", MOVIES_WITH_ID);
+//        uriMatcher.addURI(MovieContract.AUTHORITY, MovieContract.PATH_MOVIES + "/#", MOVIES_WITH_ID);
         return uriMatcher;
     }
 
@@ -104,11 +103,11 @@ public class MovieContentProvider extends ContentProvider {
         int tasksDeleted;
         switch (match) {
 
-            case MOVIES_WITH_ID:
+            case MOVIES:
 
-                String id = uri.getPathSegments().get(1);
+//                String id = uri.getPathSegments().get(1);
 
-                tasksDeleted = db.delete(TABLE_NAME, COLUMN_MOVIE_ID + "=?", new String[]{id});
+                tasksDeleted = db.delete(TABLE_NAME, selection, selectionArgs);
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -123,6 +122,23 @@ public class MovieContentProvider extends ContentProvider {
 
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
-        return 0;
+        final SQLiteDatabase db = movieDbHelper.getWritableDatabase();
+        int match = sUriMatcher.match(uri);
+        int tasksUpdated;
+        switch (match) {
+
+            case MOVIES:
+
+                tasksUpdated = db.update(TABLE_NAME, values, selection, selectionArgs);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+
+        if (tasksUpdated != 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        return tasksUpdated;
     }
 }

@@ -4,6 +4,7 @@ import android.app.LoaderManager;
 import android.content.AsyncTaskLoader;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
@@ -26,7 +27,7 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
-public class MovieDetail extends AppCompatActivity implements LoaderManager.LoaderCallbacks {
+public class MovieDetail extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Movies> {
 
     private static final String API_KEY = "8269544114add3a8508b7721bf799f09";
     private static final String API_KEY_STRING = "api_key";
@@ -39,12 +40,9 @@ public class MovieDetail extends AppCompatActivity implements LoaderManager.Load
     private ReviewAdapter reviewAdapter;
     private ActivityMovieDetailBinding detailsBinding;
     private Boolean favorite = false;
-
     private Movies currentMovie;
     private static final int REVIEW_AND_TRAILER_LOADER_ID = 1;
-    private static final int QUERY_LOADER_ID = 2;
     private final String TAG = MovieDetail.class.getSimpleName();
-    Cursor c;
     private String title;
     private String path;
     private String synopsis;
@@ -55,6 +53,7 @@ public class MovieDetail extends AppCompatActivity implements LoaderManager.Load
     private String movieRating;
     ConnectivityManager connMgr;
     NetworkInfo networkInfo;
+    private static final int FAVORITES_MOVIE_LOADER_ID = 3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,7 +113,7 @@ public class MovieDetail extends AppCompatActivity implements LoaderManager.Load
     }
 
     @Override
-    public Loader onCreateLoader(int id, Bundle args) {
+    public Loader<Movies> onCreateLoader(int id, Bundle args) {
 
         switch (id) {
 
@@ -132,72 +131,35 @@ public class MovieDetail extends AppCompatActivity implements LoaderManager.Load
 
                 return new MoviesLoader(this, uriBuilder.toString());
 
-//            case QUERY_LOADER_ID:
-//
-//                return new AsyncTaskLoader<Cursor>(this) {
-//                    @Override
-//                    protected void onStartLoading() {
-//                        forceLoad();
-//                    }
-//
-//                    @Override
-//                    public Cursor loadInBackground() {
-//                        try {
-//                            return getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
-//                                    null,
-//                                    null,
-//                                    null,
-//                                    null);
-//
-//                        } catch (Exception e) {
-//                            Log.e(TAG, "Failed to asynchronously load data.");
-//                            e.printStackTrace();
-//                            return null;
-//                        }
-//                    }
-//                };
-
             default:
                 throw new RuntimeException("Loader Not Implemented: " + id);
         }
     }
 
-        @Override
-        public void onLoadFinished (Loader loader, Object data){
+    @Override
+    public void onLoadFinished(Loader<Movies> loader, Movies data) {
+        if (data != null) {
 
-            switch (loader.getId()) {
-                case REVIEW_AND_TRAILER_LOADER_ID:
+            Movies movieReviewsAndTrailers = (Movies) data;
+            ArrayList<String> movieReviewsAuthor = movieReviewsAndTrailers.getMovieReviewsAuthor();
+            ArrayList<String> movieReviewsContent = movieReviewsAndTrailers.getMovieReviewsContent();
+            ArrayList<String> movieTrailers = movieReviewsAndTrailers.getMovieTrailers();
 
-                    if (data != null) {
+            if (movieTrailers.size() > 0) {
+                trailerAdapter.setTrailerArrayList(movieTrailers);
+            }
 
-                        Movies movieReviewsAndTrailers = (Movies) data;
-                        ArrayList<String> movieReviewsAuthor = movieReviewsAndTrailers.getMovieReviewsAuthor();
-                        ArrayList<String> movieReviewsContent = movieReviewsAndTrailers.getMovieReviewsContent();
-                        ArrayList<String> movieTrailers = movieReviewsAndTrailers.getMovieTrailers();
-
-                        if (movieTrailers.size() > 0) {
-                            trailerAdapter.setTrailerArrayList(movieTrailers);
-                        }
-
-                        if (movieReviewsAuthor.size() > 0 && movieReviewsContent.size() > 0) {
-                            reviewAdapter.setReviewArrayList(movieReviewsAuthor, movieReviewsContent);
-                        }
+            if (movieReviewsAuthor.size() > 0 && movieReviewsContent.size() > 0) {
+                reviewAdapter.setReviewArrayList(movieReviewsAuthor, movieReviewsContent);
+            }
 
 
 //                        // Set empty state text to display "No trailers and reviews found."
 //                        mEmptyStateTextView.setText(R.string.no_trailers_and_reviews);
 //                    }
 
-                    }
-
-                    break;
-
-//                case QUERY_LOADER_ID:
-//                    c = (Cursor) data;
-//                    new FavMovieAdapter(this).swapCursor(c);
-//                    break;
-            }
         }
+    }
 
         private static class MoviesLoader extends AsyncTaskLoader<Movies> {
 
@@ -228,35 +190,24 @@ public class MovieDetail extends AppCompatActivity implements LoaderManager.Load
         }
 
         @Override
-        public void onLoaderReset (Loader loader){
-
-//            switch (loader.getId()) {
-//
-//                case QUERY_LOADER_ID:
-//
-//                    new FavMovieAdapter(this).swapCursor(null);
-//
-//                    break;
-//
-//                default:
-//                    throw new RuntimeException("Loader Not Reset: " + loader.getId());
-//            }
+        public void onLoaderReset (Loader<Movies> loader){
 
         }
 
+    @Override
+    protected void onResume() {
+        getLoaderManager().restartLoader(FAVORITES_MOVIE_LOADER_ID, null, favoriteLoaderManager);
+        super.onResume();
+    }
 
     public void insertDeleteFavMovie(View view){
         if (networkInfo != null && networkInfo.isConnected()) {
 
             if (favorite) {
 
-                detailsBinding.faFavButton.setImageResource(R.drawable.ic_favorite_black_48dp);
-
                         deleteFavoriteFromDb(movieId);
                         favorite = false;
             } else {
-
-                detailsBinding.faFavButton.setImageResource(R.drawable.ic_favorite_red_48dp);
 
                         insertFavoriteToDb();
                         favorite = true;
@@ -270,46 +221,68 @@ public class MovieDetail extends AppCompatActivity implements LoaderManager.Load
 
     private void insertFavoriteToDb() {
 
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(MovieContract.MovieEntry.COLUMN_TITLE, title);
-        contentValues.put(MovieContract.MovieEntry.COLUMN_POSTER_PATH, path);
-        contentValues.put(MovieContract.MovieEntry.COLUMN_SYNOPSIS, synopsis);
-        contentValues.put(MovieContract.MovieEntry.COLUMN_RATING, movieRating);
-        contentValues.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, date);
-        contentValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID, movieId);
+        if(favorite == false) {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(MovieContract.MovieEntry.COLUMN_TITLE, title);
+            contentValues.put(MovieContract.MovieEntry.COLUMN_POSTER_PATH, path);
+            contentValues.put(MovieContract.MovieEntry.COLUMN_SYNOPSIS, synopsis);
+            contentValues.put(MovieContract.MovieEntry.COLUMN_RATING, movieRating);
+            contentValues.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, date);
+            contentValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID, movieId);
 
-        Uri uri = getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, contentValues);
-        Log.v(LOG_TAG,uri.toString());
-        if(uri != null) {
-            Toast.makeText(getBaseContext(), uri.toString(), Toast.LENGTH_LONG).show();
-        }
+            Uri uri = getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, contentValues);
+            Log.v(LOG_TAG, uri.toString());
+            if (uri != null) {
+                Toast.makeText(getBaseContext(), uri.toString(), Toast.LENGTH_LONG).show();
+            }
+            getLoaderManager().initLoader(FAVORITES_MOVIE_LOADER_ID, null, favoriteLoaderManager);
+        }else return;
 
-
-//        LoaderManager loaderManager = getLoaderManager();
-//        Loader<Cursor> queryFavoriteMovieLoader = loaderManager.getLoader(QUERY_LOADER_ID);
-//
-//        if (queryFavoriteMovieLoader == null) {
-//            loaderManager.initLoader(QUERY_LOADER_ID, null, this);
-//        } else {
-//            loaderManager.restartLoader(QUERY_LOADER_ID, null, this);
-//        }
     }
 
     private void deleteFavoriteFromDb(String movieId) {
 
         Uri uri = MovieContract.MovieEntry.CONTENT_URI;
         uri = uri.buildUpon().appendPath(movieId).build();
-        int taskDeleted = getContentResolver().delete(uri, null, null);
+        int taskDeleted = getContentResolver().delete(uri, MovieContract.MovieEntry.COLUMN_MOVIE_ID + " = " + currentMovie.getMovieId(), null);
         Log.v(LOG_TAG,String.valueOf(taskDeleted));
 
-//        LoaderManager loaderManager = getLoaderManager();
-//        Loader<Cursor> queryFavoriteMovieLoader = loaderManager.getLoader(QUERY_LOADER_ID);
-//
-//        if (queryFavoriteMovieLoader == null) {
-//            loaderManager.initLoader(QUERY_LOADER_ID, null, this);
-//        } else {
-//            loaderManager.restartLoader(QUERY_LOADER_ID, null, this);
-//        }
+        getLoaderManager().initLoader(FAVORITES_MOVIE_LOADER_ID, null, favoriteLoaderManager);
 
     }
+
+
+    private LoaderManager.LoaderCallbacks<Cursor> favoriteLoaderManager = new LoaderManager.LoaderCallbacks<Cursor>() {
+        @Override
+        public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+            return new CursorLoader(getApplicationContext(), MovieContract.MovieEntry.CONTENT_URI, new String[]{MovieContract.MovieEntry.COLUMN_MOVIE_ID},
+                    MovieContract.MovieEntry.COLUMN_MOVIE_ID + " = " + currentMovie.getMovieId(), null, null);
+        }
+
+        @Override
+        public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
+            boolean favMovieStatus;
+
+            if (data != null && data.moveToFirst()) {
+                data.close();
+                 favMovieStatus = true;
+            } else {
+                 favMovieStatus = false;
+            }
+
+            if (favMovieStatus) {
+                detailsBinding.faFavButton.setImageResource(R.drawable.ic_favorite_red_48dp);
+            } else {
+                detailsBinding.faFavButton.setImageResource(R.drawable.ic_favorite_black_48dp);
+            }
+        }
+
+        @Override
+        public void onLoaderReset(Loader<Cursor> loader) {
+
+        }
+    };
+
+
 }

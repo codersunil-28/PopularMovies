@@ -3,6 +3,7 @@ package com.example.android.popularmovies;
 import android.app.LoaderManager;
 import android.content.AsyncTaskLoader;
 import android.content.Context;
+import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
@@ -17,13 +18,15 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.android.popularmovies.data.MovieContract;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks,
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<ArrayList<Movies>>,
 MovieAdapter.setOnMovieClick{
 
     private ArrayList<Movies> mMoviesData;
@@ -40,16 +43,17 @@ MovieAdapter.setOnMovieClick{
     public static final String POPULAR = "popular";
     Cursor c;
     private final String TAG = MainActivity.class.getSimpleName();
+    private ProgressBar mProgressBar;
 
 
-    public static final int FAVORITES_MOVIE_LOADER_ID = 3;
+    private static final int FAVORITES_MOVIE_LOADER_ID = 3;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        mProgressBar = (ProgressBar) findViewById(R.id.progress_bar);
         mMoviesData = new ArrayList<>();
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         gridLayoutManager = new GridLayoutManager(getApplicationContext(),2);
@@ -71,15 +75,15 @@ MovieAdapter.setOnMovieClick{
             loaderManager.initLoader(MOVIE_LOADER_ID, b, this);
 
         } else {
+
+            mProgressBar.setVisibility(View.GONE);
             Toast.makeText(MainActivity.this, R.string.no_internet_connection, Toast.LENGTH_SHORT).show();
         }
 
-
-//        getLoaderManager().initLoader(FAVORITES_MOVIE_LOADER_ID, null, this);
     }
 
     @Override
-    public Loader onCreateLoader(int id, Bundle args) {
+    public Loader<ArrayList<Movies>> onCreateLoader(int id, Bundle args) {
 
         switch (id) {
 
@@ -98,30 +102,32 @@ MovieAdapter.setOnMovieClick{
 
             return new MoviesLoader(this, uriBuilder.toString());
 
-            case FAVORITES_MOVIE_LOADER_ID:
+//            case FAVORITES_MOVIE_LOADER_ID:
+//
+//                return new CursorLoader(getApplicationContext(), MovieContract.MovieEntry.CONTENT_URI, MovieContract.MovieEntry.MOVIE_COLUMNS, null, null, null);
 
-                return new AsyncTaskLoader<Cursor>(this) {
-                    @Override
-                    protected void onStartLoading() {
-                        forceLoad();
-                    }
-
-                    @Override
-                    public Cursor loadInBackground() {
-                        try {
-                            return getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
-                                    null,
-                                    null,
-                                    null,
-                                    null);
-
-                        } catch (Exception e) {
-                            Log.e(TAG, "Failed to asynchronously load data.");
-                            e.printStackTrace();
-                            return null;
-                        }
-                    }
-                };
+//                return new AsyncTaskLoader<Cursor>(this) {
+//                    @Override
+//                    protected void onStartLoading() {
+//                        forceLoad();
+//                    }
+//
+//                    @Override
+//                    public Cursor loadInBackground() {
+//                        try {
+//                            return getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
+//                                    null,
+//                                    null,
+//                                    null,
+//                                    null);
+//
+//                        } catch (Exception e) {
+//                            Log.e(TAG, "Failed to asynchronously load data.");
+//                            e.printStackTrace();
+//                            return null;
+//                        }
+//                    }
+//                };
 
             default:
                 throw new RuntimeException("Loader Not Implemented: " + id);
@@ -129,7 +135,22 @@ MovieAdapter.setOnMovieClick{
     }
 
     @Override
-    public void onLoaderReset(Loader loader) {
+    public void onLoadFinished(Loader<ArrayList<Movies>> loader, ArrayList<Movies> data) {
+
+        mProgressBar.setVisibility(View.GONE);
+
+        mMoviesData = data;
+
+        if (mMoviesData != null && !mMoviesData.isEmpty()) {
+
+            boolean val = mMoviesData.addAll(mMoviesData);
+            movieAdapter.setMovieArrayList(mMoviesData);
+            Log.v(TAG, "onLoadFinished ArrayList value "+ mMoviesData.size() + val);
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<ArrayList<Movies>> loader) {
 
     }
 
@@ -173,29 +194,32 @@ MovieAdapter.setOnMovieClick{
         }
     }
 
-    @Override
-    public void onLoadFinished(Loader loader, Object data) {
-        switch (loader.getId()) {
-            case MOVIE_LOADER_ID:
 
-                mMoviesData = (ArrayList) data;
 
-                if (mMoviesData != null && !mMoviesData.isEmpty()) {
-                    boolean val = mMoviesData.addAll(mMoviesData);
-                    movieAdapter.setMovieArrayList(mMoviesData);
-                    Log.v(TAG, "onLoadFinished ArrayList value "+ mMoviesData.size() + val);
-                }
+//            case FAVORITES_MOVIE_LOADER_ID:
+//
+//                c = (Cursor) data;
+//
+//                movieAdapter.swapCursor(c);
+//                break;
 
-                break;
-
-            case FAVORITES_MOVIE_LOADER_ID:
-
-                c = (Cursor) data;
-
-                movieAdapter.swapCursor(c);
-                break;
+    private LoaderManager.LoaderCallbacks<Cursor> favoriteLoaderManager = new LoaderManager.LoaderCallbacks<Cursor>() {
+        @Override
+        public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+            return new CursorLoader(getApplicationContext(), MovieContract.MovieEntry.CONTENT_URI, MovieContract.MovieEntry.MOVIE_COLUMNS, null, null, null);
         }
-    }
+
+        @Override
+        public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
+            movieAdapter.swapCursor(data);
+        }
+
+        @Override
+        public void onLoaderReset(Loader<Cursor> loader) {
+
+        }
+    };
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -221,7 +245,8 @@ MovieAdapter.setOnMovieClick{
 
             case R.id.favorite:
 
-                getFavoriteMovies();
+                getLoaderManager().initLoader(FAVORITES_MOVIE_LOADER_ID, null, favoriteLoaderManager);
+//                getFavoriteMovies();
 
                 return true;
 
@@ -231,17 +256,17 @@ MovieAdapter.setOnMovieClick{
 
     }
 
-    public void getFavoriteMovies() {
-
-        LoaderManager loaderManager = getLoaderManager();
-        Loader<Cursor> favoriteMovieLoader = loaderManager.getLoader(FAVORITES_MOVIE_LOADER_ID);
-
-        if (favoriteMovieLoader == null){
-            loaderManager.initLoader(FAVORITES_MOVIE_LOADER_ID, null, this);
-        } else {
-            loaderManager.restartLoader(FAVORITES_MOVIE_LOADER_ID, null, this);
-        }
-
-    }
+//    public void getFavoriteMovies() {
+//
+//        LoaderManager loaderManager = getLoaderManager();
+//        Loader<Cursor> favoriteMovieLoader = loaderManager.getLoader(FAVORITES_MOVIE_LOADER_ID);
+//
+//        if (favoriteMovieLoader == null){
+//            loaderManager.initLoader(FAVORITES_MOVIE_LOADER_ID, null, this);
+//        } else {
+//            loaderManager.restartLoader(FAVORITES_MOVIE_LOADER_ID, null, this);
+//        }
+//
+//    }
 
 }
